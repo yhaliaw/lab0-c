@@ -201,8 +201,57 @@ void q_reverseK(struct list_head *head, int k)
     // https://leetcode.com/problems/reverse-nodes-in-k-group/
 }
 
+void _merge(struct list_head **l, struct list_head *l1, struct list_head *l2)
+{
+    for (struct list_head **node = NULL; l1 && l2; *node = (*node)->next) {
+        node = strcmp(list_entry(l1, element_t, list)->value,
+                      list_entry(l2, element_t, list)->value) < 0
+                   ? &l1
+                   : &l2;
+        *l = *node;
+        l = &(*l)->next;
+    }
+    *l = l1 ? l1 : l2;
+}
+
+void _merge_sort(struct list_head **l)
+{
+    if (!*l || !(*l)->next)
+        return;
+
+    struct list_head *slow = *l;
+    for (struct list_head *fast = *l; fast && fast->next;
+         fast = fast->next->next)
+        slow = slow->next;
+
+    slow->prev->next = NULL;
+
+    _merge_sort(l);
+    _merge_sort(&slow);
+
+    _merge(l, *l, slow);
+}
+
 /* Sort elements of queue in ascending order */
-void q_sort(struct list_head *head) {}
+void q_sort(struct list_head *head)
+{
+    if (!head || list_empty(head))
+        return;
+
+    head->prev->next = NULL;
+
+    _merge_sort(&head->next);
+
+    head->next->prev = head;
+
+    struct list_head *prev = head;
+    for (struct list_head *node = head->next; node; node = node->next) {
+        node->prev = prev;
+        prev = node;
+    }
+    head->prev = prev;
+    prev->next = head;
+}
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
