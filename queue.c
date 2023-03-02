@@ -198,7 +198,21 @@ void q_reverse(struct list_head *head)
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
 {
-    // https://leetcode.com/problems/reverse-nodes-in-k-group/
+    if (!head || list_empty(head))
+        return;
+
+    int c = 0;
+    struct list_head *li, *safe, *tmp;
+    list_for_each_safe (li, safe, head) {
+        ++c;
+        if (c % k == 0) {
+            tmp = li;
+            for (int i = 1; i < k; ++i) {
+                list_move(li->prev, tmp);
+                tmp = li->next;
+            }
+        }
+    }
 }
 
 void _merge(struct list_head **l, struct list_head *l1, struct list_head *l2)
@@ -257,8 +271,24 @@ void q_sort(struct list_head *head)
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    if (!head || list_empty(head))
+        return 0;
+
+    q_reverse(head);
+
+    char *v = list_entry(head->next, element_t, list)->value;
+    element_t *ei, *safe;
+    list_for_each_entry_safe (ei, safe, head, list) {
+        if (strcmp(ei->value, v) < 0) {
+            list_del(&ei->list);
+            q_release_element(ei);
+        } else {
+            v = ei->value;
+        }
+    }
+
+    q_reverse(head);
+    return q_size(head);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending order */
